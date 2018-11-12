@@ -13,4 +13,5 @@
 
 auth/ssl
 kubetool
+kubetool.yaml
 dist
