@@ -26,7 +26,7 @@ import (
 
 func CreateCert() error {
 
-	viper.SetDefault("ssl.dlr", "ssl")
+	viper.SetDefault("ssl.dir", "ssl")
 
 	viper.SetDefault("ssl.cert.ca", CertConfig{
 		Organization:       "kubernetes",
@@ -90,7 +90,7 @@ func CreateCert() error {
 		SignatureAlgorithm: x509.SHA512WithRSA,
 	})
 
-	sslDir := viper.GetString("ssl.dlr")
+	sslDir := viper.GetString("ssl.dir")
 
 	var caCfg, apiserverCfg, proxyCfg, adminCfg CertConfig
 	err := viper.UnmarshalKey("ssl.cert.ca", &caCfg)
