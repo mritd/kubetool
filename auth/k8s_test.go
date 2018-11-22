@@ -19,5 +19,6 @@ package auth
 import "testing"
 
 func TestCreateCert(t *testing.T) {
+	SetExampleData()
 	CreateCert()
 }

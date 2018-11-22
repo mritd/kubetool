@@ -26,70 +26,6 @@ import (
 
 func CreateCert() error {
 
-	viper.SetDefault("ssl.dir", "ssl")
-
-	viper.SetDefault("ssl.cert.ca", CertConfig{
-		Organization:       "kubernetes",
-		OrganizationalUnit: "kubernetes Security",
-		Locality:           "Beijing",
-		Province:           "Beijing",
-		Country:            "CN",
-		StreetAddress:      "Beijing",
-		CommonName:         "kubernetes root ca",
-		PrivateKeyBits:     4096,
-		ValidityPeriod:     86700 * time.Hour,
-		SignatureAlgorithm: x509.SHA512WithRSA,
-	})
-
-	viper.SetDefault("ssl.cert.apiserver", CertConfig{
-		Organization:       "kubernetes",
-		OrganizationalUnit: "kubernetes Security",
-		Locality:           "Beijing",
-		Province:           "Beijing",
-		Country:            "CN",
-		StreetAddress:      "Beijing",
-		CommonName:         "kube-apiserver",
-		PrivateKeyBits:     2048,
-		ValidityPeriod:     86700 * time.Hour,
-		SignatureAlgorithm: x509.SHA512WithRSA,
-		DNSNames: []string{
-			"master1.kubernetes.node",
-			"master2.kubernetes.node",
-			"master3.kubernetes.node",
-		},
-		IPAddresses: []net.IP{
-			net.ParseIP("192.168.1.11"),
-			net.ParseIP("192.168.1.12"),
-			net.ParseIP("192.168.1.13"),
-		},
-	})
-
-	viper.SetDefault("ssl.cert.proxy", CertConfig{
-		Organization:       "kubernetes",
-		OrganizationalUnit: "kubernetes Security",
-		Locality:           "Beijing",
-		Province:           "Beijing",
-		Country:            "CN",
-		StreetAddress:      "Beijing",
-		CommonName:         "kube-proxy",
-		PrivateKeyBits:     4096,
-		ValidityPeriod:     86700 * time.Hour,
-		SignatureAlgorithm: x509.SHA512WithRSA,
-	})
-
-	viper.SetDefault("ssl.cert.admin", CertConfig{
-		Organization:       "kubernetes",
-		OrganizationalUnit: "kubernetes Security",
-		Locality:           "Beijing",
-		Province:           "Beijing",
-		Country:            "CN",
-		StreetAddress:      "Beijing",
-		CommonName:         "kubernetes admin",
-		PrivateKeyBits:     4096,
-		ValidityPeriod:     86700 * time.Hour,
-		SignatureAlgorithm: x509.SHA512WithRSA,
-	})
-
 	sslDir := viper.GetString("ssl.dir")
 
 	var caCfg, apiserverCfg, proxyCfg, adminCfg CertConfig
@@ -152,4 +88,70 @@ func CreateCert() error {
 
 	return nil
 
+}
+
+func SetExampleData() {
+	viper.SetDefault("ssl.dir", "kubetool/ssl")
+
+	viper.SetDefault("ssl.cert.ca", CertConfig{
+		Organization:       "kubernetes",
+		OrganizationalUnit: "kubernetes Security",
+		Locality:           "Beijing",
+		Province:           "Beijing",
+		Country:            "CN",
+		StreetAddress:      "Beijing",
+		CommonName:         "kubernetes root ca",
+		PrivateKeyBits:     4096,
+		ValidityPeriod:     86700 * time.Hour,
+		SignatureAlgorithm: x509.SHA512WithRSA,
+	})
+
+	viper.SetDefault("ssl.cert.apiserver", CertConfig{
+		Organization:       "kubernetes",
+		OrganizationalUnit: "kubernetes Security",
+		Locality:           "Beijing",
+		Province:           "Beijing",
+		Country:            "CN",
+		StreetAddress:      "Beijing",
+		CommonName:         "kube-apiserver",
+		PrivateKeyBits:     2048,
+		ValidityPeriod:     86700 * time.Hour,
+		SignatureAlgorithm: x509.SHA512WithRSA,
+		DNSNames: []string{
+			"master1.kubernetes.node",
+			"master2.kubernetes.node",
+			"master3.kubernetes.node",
+		},
+		IPAddresses: []net.IP{
+			net.ParseIP("192.168.1.11"),
+			net.ParseIP("192.168.1.12"),
+			net.ParseIP("192.168.1.13"),
+		},
+	})
+
+	viper.SetDefault("ssl.cert.proxy", CertConfig{
+		Organization:       "kubernetes",
+		OrganizationalUnit: "kubernetes Security",
+		Locality:           "Beijing",
+		Province:           "Beijing",
+		Country:            "CN",
+		StreetAddress:      "Beijing",
+		CommonName:         "kube-proxy",
+		PrivateKeyBits:     4096,
+		ValidityPeriod:     86700 * time.Hour,
+		SignatureAlgorithm: x509.SHA512WithRSA,
+	})
+
+	viper.SetDefault("ssl.cert.admin", CertConfig{
+		Organization:       "kubernetes",
+		OrganizationalUnit: "kubernetes Security",
+		Locality:           "Beijing",
+		Province:           "Beijing",
+		Country:            "CN",
+		StreetAddress:      "Beijing",
+		CommonName:         "kubernetes admin",
+		PrivateKeyBits:     4096,
+		ValidityPeriod:     86700 * time.Hour,
+		SignatureAlgorithm: x509.SHA512WithRSA,
+	})
 }

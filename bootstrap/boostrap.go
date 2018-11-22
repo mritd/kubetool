@@ -19,30 +19,30 @@ package bootstrap
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/gobuffalo/packr"
+	"github.com/spf13/viper"
+
 	"github.com/mritd/kubetool/utils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const (
-	defaultBootstrapConfig = "bootstrap.kubeconfig"
-	defaultKubeproxyConfig = "kube-proxy.kubeconfig"
-	defaultCluster         = "kubernetes"
-	defaultContext         = "default"
-	kubeproxyUser          = "kube-proxy"
-	bootstrapUserPrefix    = "system:bootstrap:"
-	defaultAuditPolicy     = `# Log all requests at the Metadata level.
-apiVersion: audit.k8s.io/v1beta1
-kind: Policy
-rules:
-- level: Metadata`
+	defaultKubeConfigDir     = "kubetool/kubeconfig"
+	defaultBootstrapConfig   = defaultKubeConfigDir + "/bootstrap.kubeconfig"
+	defaultKubeproxyConfig   = defaultKubeConfigDir + "/kube-proxy.kubeconfig"
+	defaultAuditPolicyConfig = "kubetool/audit-policy/audit-policy.yaml"
+	defaultCluster           = "kubernetes"
+	defaultContext           = "default"
+	kubeproxyUser            = "kube-proxy"
+	bootstrapUserPrefix      = "system:bootstrap"
 )
 
-func Token() (id, secret string) {
+func CreateBootstrapToken() (id, secret string) {
 	// refs https://github.com/kubernetes/community/blob/master/contributors/design-proposals/cluster-lifecycle/bootstrap-discovery.md#new-bootstrap-token-structure
 	return utils.NewLowerNumberLen(6), utils.NewLowerNumberLen(16)
 }
@@ -50,7 +50,7 @@ func Token() (id, secret string) {
 func CreateBootstrapConfig(apiServer, bootstrapToken, configPath, k8sCAPath string, k8sCA []byte) error {
 
 	sp := strings.Split(bootstrapToken, ".")
-	if sp != nil {
+	if len(sp) != 2 {
 		return errors.New("bootstrap token format error")
 	}
 	if strings.TrimSpace(apiServer) == "" {
@@ -144,6 +144,8 @@ func CreateKubeProxyConfig(apiServer, configPath, k8sCAPath, clientCertPath, cli
 	authInfo := clientcmdapi.NewAuthInfo()
 	authInfo.ClientCertificate = clientCertPath
 	authInfo.ClientCertificateData = clientCert
+	authInfo.ClientKey = clientKeyPath
+	authInfo.ClientKeyData = clientKey
 
 	// set auth info
 	cfg.AuthInfos[kubeproxyUser] = authInfo
@@ -161,15 +163,37 @@ func CreateKubeProxyConfig(apiServer, configPath, k8sCAPath, clientCertPath, cli
 	return clientcmd.ModifyConfig(opts, *cfg, true)
 }
 
-func CreateAuditPolicy() {
-	policy := auditv1.Policy{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "audit.k8s.io/v1",
-		},
-		Rules: []auditv1.PolicyRule{
-			{
-				Level: auditv1.LevelMetadata,
-			},
-		},
+func CreateAuditPolicy(configPath string) error {
+
+	baseDir := filepath.Dir(configPath)
+	if _, err := os.Stat(baseDir); err != nil {
+		err = os.MkdirAll(baseDir, 0755)
+		if err != nil {
+			return err
+		}
 	}
+
+	auditPolicy := viper.GetString("apiserver.audit_policy")
+
+	configFile, err := os.OpenFile(configPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer configFile.Close()
+
+	_, err = configFile.WriteString(auditPolicy)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SetExampleData() {
+	box := packr.NewBox("../resources")
+	auditPolicy, err := box.FindString("apiserver/audit-policy.yaml")
+	if err != nil {
+		auditPolicy = ""
+	}
+	viper.SetDefault("apiserver.audit_policy", auditPolicy)
 }
